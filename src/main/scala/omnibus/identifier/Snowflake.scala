@@ -13,7 +13,7 @@ object Snowflake {
     val log = LoggerFactory.getLogger( clazz )
 
     val mac = {
-      import java.net.{ InetAddress, NetworkInterface }
+      import java.net.NetworkInterface
       import scala.jdk.CollectionConverters._
       NetworkInterface.getNetworkInterfaces.asScala
         .filter { ni => Option( ni.getHardwareAddress ).isDefined }

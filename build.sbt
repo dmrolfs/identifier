@@ -36,9 +36,10 @@ scalacOptions ++=
     "-language:experimental.macros",
     "-unchecked",
     "-Ywarn-dead-code",
-    "-Ywarn-unused",
+    "-Ywarn-unused:explicits",
     "-Ywarn-numeric-widen",
     "-Ywarn-value-discard",
+    "-Ywarn-macros:after",
     "-deprecation"
   ) ++ (CrossVersion.partialVersion(scalaVersion.value) match {
     case Some((2, 12)) => scalacOptionsOnly212
