@@ -11,3 +11,5 @@ addSbtPlugin("com.timushev.sbt"                  % "sbt-updates"            % "0
 addSbtPlugin("org.scoverage"                     % "sbt-scoverage"          % "1.6.1")
 
 libraryDependencies += "org.slf4j" % "slf4j-nop" % "1.7.30"
+
+addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.13")
