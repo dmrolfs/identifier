@@ -3,8 +3,16 @@ package omnibus.identifier
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import io.jvm.uuid._
+import org.scalatest.{ EitherValues, Tag }
+import org.slf4j.LoggerFactory
+import io.circe.parser
+import io.circe.syntax._
 
-class ShortUUIDSpec extends AnyFlatSpec with Matchers {
+class ShortUUIDSpec extends AnyFlatSpec with Matchers with EitherValues {
+  val log = LoggerFactory.getLogger( classOf[ShortUUIDSpec] )
+
+  object WIP extends Tag( "wip" )
+
   "A ShortUUID" should "create a nil" in {
     ShortUUID.toUUID( ShortUUID.zero ) shouldBe UUID( 0L, 0L )
   }
@@ -35,4 +43,17 @@ class ShortUUIDSpec extends AnyFlatSpec with Matchers {
     val second = ShortUUID()
     first should not be second
   }
+
+  it should "serde Circe Json" taggedAs WIP in {
+    val sidValue = ShortUUID()
+    log.debug( s"sidValue = ${sidValue}" )
+
+    val sidJson = sidValue.asJson
+    log.debug( s"sidJson = ${sidJson}" )
+
+    val actual = parser.parse( sidJson.noSpaces ).flatMap( _.as[ShortUUID] )
+    log.debug( s"ShortUUID Circe deser actual = ${actual}" )
+    actual.right.value shouldBe sidValue
+  }
+
 }

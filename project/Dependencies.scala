@@ -279,6 +279,7 @@ object Dependencies {
     logging.all ++
     cats.all ++
     Seq(
+      scalaUuid,
       enumeratum,
       config,
       ficus,

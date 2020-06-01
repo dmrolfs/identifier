@@ -1,12 +1,11 @@
 package omnibus.identifier
 
-//import io.circe.Json.JString
+import io.jvm.uuid.UUID
 import org.scalatest.{ EitherValues, Tag }
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 //import play.api.libs.json.{ Json => PJson, _ }
 import io.circe.{ Json => CJson, _ }
-//import io.circe.parser._
 import io.circe.syntax._
 import org.slf4j.LoggerFactory
 
@@ -38,6 +37,15 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
     type TID = identifying.TID
     def nextId: TID = identifying.next
     implicit val identifying = Identifying.bySnowflake[Zoo]()
+  }
+
+  case class Moo( id: Moo.TID, name: String )
+
+  object Moo {
+    type TID = identifying.TID
+    def nextId: TID = identifying.next
+
+    implicit val identifying = Identifying.byUuid[Moo]
   }
 
   object WIP extends Tag( "wip" )
@@ -156,6 +164,8 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       implicit val barShortIdentifying = Foo.identifying.as[Bar]
       "val bid = fid.as[Bar]" should compile
       val bid: Id.Aux[Bar, ShortUUID] = fid.as[Bar]
+      fid.label shouldBe "Foo"
+      bid.label shouldBe "Bar"
       bid.value shouldBe fid.value
       bid.toString shouldBe s"BarId(${fid.value})"
     }
@@ -180,6 +190,7 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
 
       actual shouldBe expected
       actual.value shouldBe fid
+      actual.label shouldBe "Foo"
       actual.toString shouldBe s"FooId(${fid})"
     }
 
@@ -203,40 +214,124 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
 
       actual shouldBe expected
       actual.value shouldBe zid
+      actual.label shouldBe "Zoo"
       actual.toString shouldBe s"ZooId(${zid})"
     }
 
-    "encode to Circe Json" taggedAs WIP in {
-      val fid: Id.Aux[Foo, ShortUUID] = Foo.nextId
-      val bid: Id.Aux[Bar, Long] = Bar.nextId
-      val zid: Id.Aux[Zoo, String] = Zoo.nextId
-
-      fid.asJson shouldBe CJson.fromString( fid.value.toString )
-      bid.asJson shouldBe CJson.fromString( bid.value.toString )
-      zid.asJson shouldBe CJson.fromString( zid.value.toString )
-
-      val fid2: Id[Foo] = fid
-      fid2.asJson shouldBe CJson.fromString( fid.value.toString )
-
-      val bid2: Id[Bar] = bid
-      bid2.asJson shouldBe CJson.fromString( bid.value.toString )
-
-      val zid2: Id[Zoo] = zid
-      zid2.asJson shouldBe CJson.fromString( zid.value.toString )
+    "encode Id[ShortUUID] to/from Circe JSON" in {
+      val short: Id.Aux[Foo, ShortUUID] = Foo.nextId
+      val shortJson = short.asJson
+      shortJson shouldBe short.value.asJson
+      val fromShort = parser
+        .parse( shortJson.noSpaces )
+        .flatMap( _.as[Id.Aux[Foo, ShortUUID]] )
+        .right
+        .value
+      fromShort shouldBe short
     }
 
-    "decode from Circe Json" taggedAs WIP in {
+    "encode Id[Long] to/from Circe JSON" in {
+      val long: Id.Aux[Bar, Long] = Bar.nextId
+      val longJson = long.asJson
+      longJson shouldBe long.value.asJson
+      val fromLong = parser
+        .parse( longJson.noSpaces )
+        .flatMap( _.as[Id.Aux[Bar, Long]] )
+        .right
+        .value
+      fromLong shouldBe long
+    }
+
+    "encode Id[Snowflake] to/from Circe JSON" in {
+      val snow: Id.Aux[Zoo, String] = Zoo.nextId
+      val snowJson = snow.asJson
+      snowJson shouldBe snow.value.asJson
+      val fromSnow = parser
+        .parse( snowJson.noSpaces )
+        .flatMap( _.as[Id.Aux[Zoo, String]] )
+        .right
+        .value
+      fromSnow shouldBe snow
+    }
+
+    "encode Id[UUID] to/from Circe JSON" in {
+      val uuid: Id.Aux[Moo, UUID] = Moo.nextId
+      val uuidJson = uuid.asJson
+      uuidJson shouldBe uuid.value.asJson
+      val fromUuid = parser
+        .parse( uuidJson.noSpaces )
+        .flatMap( _.as[Id.Aux[Moo, UUID]] )
+        .right
+        .value
+      fromUuid shouldBe uuid
+    }
+
+    "decode ShortUUID Id from Circe Json" taggedAs WIP in {
       val sidValue = ShortUUID()
+      log.debug( s"sidValue = ${sidValue}" )
+
+      val sidJson = sidValue.asJson
+      log.debug( s"sidJson = ${sidJson}" )
+
+      parser.parse( sidJson.noSpaces ).flatMap( _.as[ShortUUID] ).right.value shouldBe sidValue
+
+      val actualSID =
+        parser.parse( sidJson.noSpaces ).flatMap( _.as[Id.Aux[Foo, ShortUUID]] ).right.value
+      log.debug( s"actualSID = ${actualSID}" )
+
+      actualSID.value shouldBe sidValue
+      actualSID.label shouldBe "Foo"
+    }
+
+    "decode Long Id from Circe Json" in {
       val lidValue = Random.nextLong()
-      val zidValue = Zoo.nextId.value
+      log.debug( s"lidValue = ${lidValue}" )
 
-      val fidJson = CJson fromString sidValue.toString
       val lidJson = CJson fromLong lidValue
-      val zidJson = CJson fromString zidValue
+      log.debug( s"lidJson = ${lidJson}" )
 
-      parser.parse( fidJson.noSpaces ).flatMap( _.as[ShortUUID] ).right.value shouldBe sidValue
       parser.parse( lidJson.noSpaces ).flatMap( _.as[Long] ).right.value shouldBe lidValue
+
+      val actualLID =
+        parser.parse( lidJson.noSpaces ).flatMap( _.as[Id.Aux[Bar, Long]] ).right.value
+      log.debug( s"actualLID = ${actualLID}" )
+
+      actualLID.value shouldBe lidValue
+      actualLID.label shouldBe "Bar"
+    }
+
+    "decode Snowflake ID from Circe Json" in {
+      val zidValue = Zoo.nextId.value
+      log.debug( s"zidValue = ${zidValue}" )
+
+      val zidJson = CJson fromString zidValue
+      log.debug( s"zidJson = ${zidJson}" )
+
       parser.parse( zidJson.noSpaces ).flatMap( _.as[String] ).right.value shouldBe zidValue
+
+      val actualZID =
+        parser.parse( zidJson.noSpaces ).flatMap( _.as[Id.Aux[Zoo, String]] ).right.value
+      log.debug( s"actualZID = ${actualZID}" )
+
+      actualZID.value shouldBe zidValue
+      actualZID.label shouldBe "Zoo"
+    }
+
+    "decode UUID ID from Circe Json" in {
+      val mooValue = UUID.random
+      log.debug( s"mooValue = ${mooValue}" )
+
+      val mooJson = mooValue.asJson
+      log.debug( s"mooJson = ${mooJson}" )
+
+      parser.parse( mooJson.noSpaces ).flatMap( _.as[UUID] ).right.value shouldBe mooValue
+
+      val actualMOO =
+        parser.parse( mooJson.noSpaces ).flatMap( _.as[Id.Aux[Moo, UUID]] ).right.value
+      log.debug( s"actualMOO = ${actualMOO}" )
+
+      actualMOO.value shouldBe mooValue
+      actualMOO.label shouldBe "Moo"
     }
 
 //    "write to PlayJson" taggedAs WIP in {

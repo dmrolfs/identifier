@@ -2,6 +2,7 @@ package omnibus.identifier
 
 import io.circe.Decoder.Result
 import io.circe.{ Json => CJson, _ }
+import org.slf4j.LoggerFactory
 
 import scala.reflect.{ classTag, ClassTag }
 
@@ -17,7 +18,7 @@ sealed abstract class Id[E] extends Equals with Product with Serializable {
 
   def unsafeAs[T: Labeling]: Id.Aux[T, IdType] = Id.unsafeOf[T, IdType]( this.value )
 
-  protected def label: String
+  def label: String
 
   override def productPrefix: String = "Id"
   override def productArity: Int = 1
@@ -31,8 +32,6 @@ sealed abstract class Id[E] extends Equals with Product with Serializable {
 
   @transient lazy private val IdClassType: ClassTag[Id.Aux[E, IdType]] = classTag[Id.Aux[E, IdType]]
   override def canEqual( rhs: Any ): Boolean = IdClassType.unapply( rhs ).isDefined
-//    rhs.isInstanceOf[Id[E]]
-//  }
 
   override def hashCode(): Int = 41 * ( 41 + value.##)
 
@@ -58,14 +57,14 @@ sealed abstract class Id[E] extends Equals with Product with Serializable {
 }
 
 trait LowPriorityFormats {
-
-//  implicit def idPlayJsonWrites[E]: Writes[Id[E]] =
+  //  implicit def idPlayJsonWrites[E]: Writes[Id[E]] =
 //    new Writes[Id[E]] {
 //      override def writes( id: Id[E] ): JsValue = PJson toJson id.value.toString
 //    }
 }
 
 object Id extends LowPriorityFormats {
+  private val log = LoggerFactory.getLogger( "Id" )
 
   type Aux[E, I] = Id[E] {
     type IdType = I
@@ -106,6 +105,37 @@ object Id extends LowPriorityFormats {
     unsafeCreate( id.value, Labeling[E].label )
   }
 
+  implicit def auxJsonEncoder[E, I: Encoder]: Encoder[Id.Aux[E, I]] =
+    new Encoder[Id.Aux[E, I]] {
+      override def apply( id: Id.Aux[E, I] ): CJson = implicitly[Encoder[I]].apply( id.value )
+    }
+
+  implicit def auxJsonDecoder[E, I]( implicit
+    i: Identifying.Aux[E, I],
+    l: Labeling[E],
+    idDecoder: Decoder[I]
+  ): Decoder[Aux[E, I]] = {
+    new Decoder[Aux[E, I]] {
+      override def apply( c: HCursor ): Result[Aux[E, I]] = {
+        log.debug( s"Circe JSON Cursor at: [${c.value}] -- identifying:[${i}], labeling:[${l}]" )
+        log.debug( s"Circe JSON Cursor as STRING: [${c.value.toString}]" )
+        idDecoder( c ) map { id => Id.of[E, I]( id ) }
+      }
+    }
+  }
+
+  private[identifier] def unsafeCreate[E, I]( id: I, label: String ): Id.Aux[E, I] = {
+    Simple( value = id, label = label )
+  }
+
+  private[identifier] final case class Simple[E, I](
+    override val value: I,
+    override val label: String
+  ) extends Id[E] {
+    override type IdType = I
+  }
+}
+
 //  implicit def auxPlayJsonFormat[E, I]( implicit
 //    i: Identifying.Aux[E, I],
 //    l: Labeling[E]
@@ -119,45 +149,6 @@ object Id extends LowPriorityFormats {
 //        PJson toJson o.value.toString
 //      }
 //    }
-
-  implicit def idJsonEncoder[E]: Encoder[Id[E]] =
-    new Encoder[Id[E]] {
-      override def apply( id: Id[E] ): CJson = CJson fromString id.value.toString
-    }
-
-  implicit def auxJsonEncoder[E, I]: Encoder[Id.Aux[E, I]] =
-    new Encoder[Id.Aux[E, I]] {
-      override def apply( id: Id.Aux[E, I] ): CJson = CJson fromString id.value.toString
-    }
-
-  implicit def auxJsonDecoder[E, I]( implicit
-    i: Identifying.Aux[E, I],
-    l: Labeling[E]
-  ): Decoder[Aux[E, I]] = {
-    new Decoder[Aux[E, I]] {
-      override def apply( c: HCursor ): Result[Aux[E, I]] = {
-        import cats.syntax.either._
-        Either
-          .fromOption[DecodingFailure, String](
-            c.value.asString,
-            DecodingFailure( "not a valid id string", c.history )
-          )
-          .map { fromString( _ )( i, l ) }
-      }
-    }
-  }
-
-  private[identifier] def unsafeCreate[E, I]( id: I, label: String ): Id.Aux[E, I] = {
-    Simple( value = id, label = label )
-  }
-
-  private[identifier] final case class Simple[E, I](
-    override val value: I,
-    override protected val label: String
-  ) extends Id[E] {
-    override type IdType = I
-  }
-}
 
 //  @annotation.implicitNotFound(
 //    "Descriptor is not a valid identifying Tag. Declare it to be a case object to fix this error"

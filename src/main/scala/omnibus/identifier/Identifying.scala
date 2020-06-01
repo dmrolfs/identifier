@@ -1,7 +1,7 @@
 package omnibus.identifier
 
 import java.util.UUID
-
+import io.jvm.uuid.{ UUID => ScalaUUID }
 import com.softwaremill.id.DefaultIdGenerator
 import com.softwaremill.id.pretty.{ IdPrettifier, PrettyIdGenerator }
 import omnibus.core._
@@ -71,12 +71,12 @@ object Identifying extends IdentifyingCompanion with LowPriorityIdentifying {
   }
 
   def byUuid[E: Labeling]: Aux[E, UUID] = {
-    val zero = new UUID( 0L, 0L )
+    val zero = ScalaUUID( 0L, 0L )
 
     pure[E, UUID](
       zeroValueFn = zero,
-      nextValueFn = () => UUID.randomUUID(),
-      valueFromRepFn = UUID.fromString
+      nextValueFn = () => ScalaUUID.random,
+      valueFromRepFn = ScalaUUID.fromString
     )
   }
 
