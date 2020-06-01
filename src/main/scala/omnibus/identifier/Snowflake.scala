@@ -4,14 +4,12 @@ import scala.reflect.ClassTag
 import org.slf4j.LoggerFactory
 
 object Snowflake {
+  private val log = LoggerFactory.getLogger( "Snowflake" )
 
   private val workerIdBits = 5L
   private val maxWorkerId = -1L ^ ( -1L << workerIdBits)
 
-  def workerIdFromHost[C: ClassTag](): Long = {
-    val clazz = implicitly[ClassTag[C]].runtimeClass
-    val log = LoggerFactory.getLogger( clazz )
-
+  def workerIdFromHostForLabel( label: String ): Long = {
     val mac = {
       import java.net.NetworkInterface
       import scala.jdk.CollectionConverters._
@@ -22,17 +20,20 @@ object Snowflake {
 
     val jvmName = java.lang.management.ManagementFactory.getRuntimeMXBean.getName
 
-    log.info(
-      s"elements used to calculate worker-id: mac:[${mac}] jvm:[${jvmName}] class:[${clazz.getName}]"
-    )
+    log.info( s"calculate worker-id from: mac:[${mac}] jvm:[${jvmName}] label:[${label}]" )
 
     val hash =
       41 * (
         41 * (
-          41 + clazz.##
+          41 + label.##
         ) + jvmName.##
       ) + mac.##
 
     ( math.abs( hash ) % maxWorkerId).toLong
+  }
+
+  def workerIdFromHostFor[C: ClassTag]: Long = {
+    val clazz = implicitly[ClassTag[C]].runtimeClass
+    workerIdFromHostForLabel( clazz.getTypeName )
   }
 }
