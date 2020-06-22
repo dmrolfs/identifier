@@ -73,6 +73,14 @@ class IdentifyingSpec extends AnyWordSpec with Matchers with EitherValues {
       Zed.identifying.label shouldBe empty
     }
 
+    "provide entity tag" in {
+      import scala.reflect.classTag
+
+      Foo.identifying.entityType shouldBe classTag[Foo]
+      Bar.identifying.entityType shouldBe classTag[Bar]
+      Zed.identifying.entityType shouldBe classTag[Zed]
+    }
+
     "support conversion to another entity basis" in {
       val fid: Identifying.Aux[Foo, ShortUUID] = Identifying[Foo]
       val bid: Identifying.Aux[Bar, ShortUUID] = fid.as[Bar]

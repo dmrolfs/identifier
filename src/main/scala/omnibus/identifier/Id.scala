@@ -1,10 +1,9 @@
 package omnibus.identifier
 
+import scala.reflect.{ classTag, ClassTag }
 import io.circe.Decoder.Result
 import io.circe.{ Json => CJson, _ }
 import org.slf4j.LoggerFactory
-
-import scala.reflect.{ classTag, ClassTag }
 
 sealed abstract class Id[E] extends Equals with Product with Serializable {
   //todo: better handle primitive boxing
