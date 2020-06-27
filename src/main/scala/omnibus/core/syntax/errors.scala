@@ -10,6 +10,14 @@ trait ErrorsSyntax {
     new ExtractableIssues( issues )
   }
 
+  implicit def extractableErrors[A]( errors: AllErrorsOr[A] ): ExtractableErrors[A] = {
+    new ExtractableErrors( errors )
+  }
+
+  implicit def extractableError[A]( error: ErrorOr[A] ): ExtractableError[A] = {
+    new ExtractableError( error )
+  }
+
 }
 
 final class ExtractableIssues[A]( val underlying: AllIssuesOr[A] ) extends AnyVal {
