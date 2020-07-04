@@ -7,7 +7,13 @@ object Snowflake {
   private val log = LoggerFactory.getLogger( "Snowflake" )
 
   private val workerIdBits = 5L
-  private val maxWorkerId = -1L ^ ( -1L << workerIdBits)
+  val MaxWorkerId = -1L ^ ( -1L << workerIdBits)
+  val MaxDatacenterId = -1L ^ ( -1L << workerIdBits)
+
+  def datacenterIdForNum( num: Long ): Long = math.abs( num ) % MaxDatacenterId
+  def datacenterIdForLabel( label: String ): Long = math.abs( label.## ) % MaxDatacenterId
+
+  def workerIdForNum( num: Long ): Long = math.abs( num ) % MaxWorkerId
 
   def workerIdFromHostForLabel( label: String ): Long = {
     val mac = {
@@ -29,7 +35,7 @@ object Snowflake {
         ) + jvmName.##
       ) + mac.##
 
-    ( math.abs( hash ) % maxWorkerId).toLong
+    ( math.abs( hash ) % MaxWorkerId).toLong
   }
 
   def workerIdFromHostFor[C: ClassTag]: Long = {
