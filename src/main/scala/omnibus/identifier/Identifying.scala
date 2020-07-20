@@ -97,7 +97,7 @@ object Identifying extends IdentifyingCompanion with LowPriorityIdentifying {
       nextValueFn = () => snowflake.nextId(),
       valueFromRepFn = { rep =>
         if (rep.isEmpty || prettifier.isValid( rep )) rep
-        else throw new IllegalStateException( s"invalid prettifier id: ${rep} " )
+        else throw InvalidIdentifier( rep )
       }
     )
   }
