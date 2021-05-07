@@ -4,27 +4,28 @@ lazy val scala212               = "2.12.13"
 lazy val scala213               = "2.13.5"
 lazy val supportedScalaVersions = List(scala212, scala213)
 
-ThisBuild / organization := "io.github.dmrolfs"
-ThisBuild / name := "identifier"
-ThisBuild / organizationName := "dmrolfs"
-ThisBuild / organizationHomepage := Some(url("https://io.github.dmrolfs"))
+organization := "io.github.dmrolfs"
+name := "identifier"
+organizationName := "dmrolfs"
+organizationHomepage := Some(url("https://io.github.dmrolfs"))
 
-ThisBuild / scmInfo := Some(ScmInfo(
-  url("https://github.com/dmrolfs/identifier"), "scm:git@github.com:dmrolfs/identifier.git"
-))
-
-ThisBuild / developers := List(
-  Developer(
-    id = "dmrolfs",
-    name = "Damon Rolfs",
-    email = "drolfs@gmail.com",
-    url = url("https://github.com/dmrolfs")
+lazy val publishSettings = Seq(
+  description := "Small, focused toolkit for defining typed and tagged entity identifiers.",
+  licenses := List("MIT" -> url("https://opensource.org/licenses/MIT")),
+  homepage := Some(url("https://github.com/dmrolfs/identifier")),
+  scmInfo := Some(ScmInfo(
+    url("https://github.com/dmrolfs/identifier"), "scm:git@github.com:dmrolfs/identifier.git"
+  )),
+  developers := List(
+    Developer(
+      id = "dmrolfs",
+      name = "Damon Rolfs",
+      email = "drolfs@gmail.com",
+      url = url("https://github.com/dmrolfs")
+    )
   )
 )
 
-ThisBuild / description := "Small, focused toolkit for defining typed and tagged entity identifiers."
-ThisBuild / licenses := List("MIT" -> url("https://opensource.org/licenses/MIT"))
-ThisBuild / homepage := Some(url("https://github.com/dmrolfs/identifier"))
 
 // Remove all additional repository other than Maven Central from POM
 ThisBuild / pomIncludeRepository := { _ => false }
@@ -90,6 +91,7 @@ lazy val root = (project in file("."))
   // .settings(multiJvmSettings: _*)
   .settings(parallelExecution in Test := false)
   .settings(crossScalaVersions := supportedScalaVersions)
+  .settings(publishSettings)
 
 scalafmtOnCompile := true
 
