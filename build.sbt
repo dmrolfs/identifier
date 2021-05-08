@@ -114,6 +114,7 @@ releasePublishArtifactsAction := PgpKeys.publishSigned.value
 // parallelExecution in MultiJvm := false
 
 import ReleaseTransformations._
+import xerial.sbt.Sonatype._
 
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,              // : ReleaseStep
