@@ -109,4 +109,6 @@ assemblyOption in assembly := (assemblyOption in assembly).value.copy(includeSca
 
 assemblyJarName in assembly := s"${organizationName.value}-${name.value}-${version.value}.jar"
 
+releasePublishArtifactsAction := PgpKeys.publishSigned.value
+
 // parallelExecution in MultiJvm := false
