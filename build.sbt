@@ -1,4 +1,6 @@
 import Dependencies._
+import xerial.sbt.Sonatype._
+
 
 lazy val scala212               = "2.12.13"
 lazy val scala213               = "2.13.5"
@@ -23,7 +25,8 @@ lazy val publishSettings = Seq(
       email = "drolfs@gmail.com",
       url = url("https://github.com/dmrolfs")
     )
-  )
+  ),
+  sonatypeCredentialHost := "s01.oss.sonatype.org"
 )
 
 
