@@ -100,7 +100,7 @@ object Dependencies {
   object cats extends SimpleModule {
     override val groupId = "org.typelevel"
     override val artifactIdRoot = "cats"
-    override val version = "2.6.0"
+    override val version = "2.10.0"
 
     val core = module( "core" )
     val kernel = module( "kernel" )
@@ -133,13 +133,13 @@ object Dependencies {
     object logback extends SimpleModule {
       override val groupId = "ch.qos.logback"
       override val artifactIdRoot = "logback"
-      override val version = "1.2.3"
+      override val version = "1.5.6"
       override val isScala = false
       val core = module( "core" )
       val classic = module( "classic" )
     }
 
-    val slf4j = "org.slf4j" % "slf4j-api" % "1.7.30" intransitive
+    val slf4j = "org.slf4j" % "slf4j-api" % "2.0.13" intransitive
     val log4jOverSlf4j = "org.slf4j" % "log4j-over-slf4j" % "1.7.30"
   }
 
@@ -186,7 +186,7 @@ object Dependencies {
 
   val enumeratum = "com.beachape" %% "enumeratum" % "1.6.1"
   val newtype = "io.estatico" %% "newtype" % "0.4.4"
-  val snowflake = "com.softwaremill.common" %% "id-generator" % "1.3.1"
+  val snowflake = "com.softwaremill.common" %% "id-generator" % "1.4.0"
 //    val guava = "com.google.guava" % "guava" % "21.0"
   // val offheap = "sh.den" % "scala-offheap_2.11" % "0.1"
   val fastutil = "it.unimi.dsi" % "fastutil" % "8.3.1" withSources() withJavadoc()
@@ -202,7 +202,7 @@ object Dependencies {
   val inflector = "org.atteo" % "evo-inflector" % "1.2.2"
   val squants = "org.typelevel"  %% "squants"  % "1.6.0"
   val lang = "org.apache.commons" % "commons-lang3" % "3.5"
-  val codec = "commons-codec" % "commons-codec" % "1.15"
+  val codec = "commons-codec" % "commons-codec" % "1.17.0"
   val math3 = "org.apache.commons" % "commons-math3" % "3.6.1" withSources() withJavadoc()
 //    val suanshu = "com.numericalmethod" % "suanshu" % "3.4.0" intransitive()  // don't want to use due to $$$
   val scopt = "com.github.scopt" %% "scopt" % "3.5.0"
@@ -230,7 +230,7 @@ object Dependencies {
   object circe extends SimpleModule {
     override val groupId: String = "io.circe"
     override val artifactIdRoot: String = "circe"
-    override val version: String = "0.13.0"
+    override val version: String = "0.14.7"
     def all = Seq( core, generic, parser )
 
     val core = module( "core" )
@@ -248,10 +248,10 @@ object Dependencies {
   }
 
   object quality {
-    val scalatest = "org.scalatest" %% "scalatest" % "3.2.8" withSources() withJavadoc()
+    val scalatest = "org.scalatest" %% "scalatest" % "3.2.18" withSources() withJavadoc()
 
     val scalatestPlus = "org.scalatestplus" %% "scalacheck-1-14" % "3.1.2.0"
-    val scalacheck = "org.scalacheck" %% "scalacheck" % "1.15.4"
+    val scalacheck = "org.scalacheck" %% "scalacheck" % "1.18.0"
 
     val cats = "com.ironcorelabs" %% "cats-scalatest" % "3.0.5"
     val inmemory = "com.github.dnvriend" %% "akka-persistence-inmemory" % "2.5.12.2"
@@ -259,7 +259,7 @@ object Dependencies {
     object mockito extends SimpleModule {
       override val groupId = "org.mockito"
       override val artifactIdRoot = "mockito"
-      override val version = "3.9.0"
+      override val version = "5.11.0"
       override val isScala = false
       val core = module( "core" ) withSources() withJavadoc()
     }

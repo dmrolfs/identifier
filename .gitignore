@@ -230,3 +230,5 @@ deploy.conf
 icon?
 
 .DS_Store
+.bsp/
+project/.bloop/
