@@ -50,11 +50,11 @@ object ShortUUID {
 
   val zero: ShortUUID = fromUUID( UUID( 0L, 0L ) )
 
-  implicit val jsonEncoder = new Encoder[ShortUUID] {
+  implicit val jsonEncoder: Encoder[ShortUUID] = new Encoder[ShortUUID] {
     override def apply( sid: ShortUUID ): Json = Json fromString sid.toString
   }
 
-  implicit val jsonDecoder = new Decoder[ShortUUID] {
+  implicit val jsonDecoder: Decoder[ShortUUID] = new Decoder[ShortUUID] {
 
     override def apply( c: HCursor ): Result[ShortUUID] = {
       val result = for {
@@ -67,7 +67,9 @@ object ShortUUID {
         sid
       }
 
-      result leftMap { DecodingFailure.fromThrowable( _, c.history ) }
+      result leftMap {
+        DecodingFailure.fromThrowable( _, c.history )
+      }
     }
   }
 }

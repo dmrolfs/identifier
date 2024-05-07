@@ -17,23 +17,23 @@ class IdentifyingSpec extends AnyWordSpec with Matchers with EitherValues {
   object Foo {
     type TID = identifying.TID
     def nextId: TID = identifying.next
-    implicit val identifying = Identifying.byShortUuid[Foo]
+    implicit val identifying: Identifying.Aux[Foo, ShortUUID] = Identifying.byShortUuid[Foo]
   }
 
   case class Bar( id: Id[Bar], b: Double )
 
   object Bar {
     def nextId: Id[Bar] = identifying.next
-    implicit val labeling = Labeling.custom[Bar]( "SuperBar" )
-    implicit val identifying = new Identifying.ByLong[Bar]
+    implicit val labeling: Labeling[Bar] = Labeling.custom[Bar]( "SuperBar" )
+    implicit val identifying: Identifying.Aux[Bar, Long] = new Identifying.ByLong[Bar]
   }
 
   case class Zed( id: Zed.TID, score: Double )
 
   object Zed {
     type TID = identifying.TID
-    implicit val labeling = Labeling.empty[Zed]
-    implicit val identifying = Identifying.byUuid[Zed]
+    implicit val labeling: Labeling[Zed] = Labeling.empty[Zed]
+    implicit val identifying: Identifying.Aux[Zed, UUID] = Identifying.byUuid[Zed]
   }
 
   type OZed = Option[Zed]
@@ -42,7 +42,9 @@ class IdentifyingSpec extends AnyWordSpec with Matchers with EitherValues {
 
   object Snowflake {
     type TID = identifying.TID
-    implicit val identifying = Identifying.bySnowflake[Snowflake]()
+
+    implicit val identifying: Identifying.Aux[Snowflake, String] =
+      Identifying.bySnowflake[Snowflake]()
   }
 
   object WIP extends Tag( "wip" )
@@ -229,8 +231,7 @@ class IdentifyingSpec extends AnyWordSpec with Matchers with EitherValues {
       val prettifier = IdPrettifier.default
       prettifier
         .toIdSeed( sid2.value )
-        .right
-        .value should be > prettifier.toIdSeed( sid.value ).right.value
+        .value should be > prettifier.toIdSeed( sid.value ).value
       sid2.getClass shouldBe sid.getClass
     }
   }

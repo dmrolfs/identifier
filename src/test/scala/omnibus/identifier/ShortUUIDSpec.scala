@@ -53,7 +53,7 @@ class ShortUUIDSpec extends AnyFlatSpec with Matchers with EitherValues {
 
     val actual = parser.parse( sidJson.noSpaces ).flatMap( _.as[ShortUUID] )
     log.debug( s"ShortUUID Circe deser actual = ${actual}" )
-    actual.right.value shouldBe sidValue
+    actual.value shouldBe sidValue
   }
 
 }

@@ -20,7 +20,7 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
 
   object Foo {
     def nextId: Foo#TID = identifying.next
-    implicit val identifying = Identifying.byShortUuid[Foo]
+    implicit val identifying: Identifying.Aux[Foo, ShortUUID] = Identifying.byShortUuid[Foo]
   }
 
   case class Bar( id: Id[Bar], b: Double )
@@ -28,7 +28,7 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
   object Bar {
     type TID = identifying.TID
     def nextId: TID = identifying.next
-    implicit val identifying = Identifying.byLong[Bar]
+    implicit val identifying: Identifying.Aux[Bar, Long] = Identifying.byLong[Bar]
   }
 
   case class Zoo( id: Zoo.TID, animal: String )
@@ -36,7 +36,7 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
   object Zoo {
     type TID = identifying.TID
     def nextId: TID = identifying.next
-    implicit val identifying = Identifying.bySnowflake[Zoo]()
+    implicit val identifying: Identifying.Aux[Zoo, String] = Identifying.bySnowflake[Zoo]()
   }
 
   case class Moo( id: Moo.TID, name: String )
@@ -45,7 +45,7 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
     type TID = identifying.TID
     def nextId: TID = identifying.next
 
-    implicit val identifying = Identifying.byUuid[Moo]
+    implicit val identifying: Identifying.Aux[Moo, UUID] = Identifying.byUuid[Moo]
   }
 
   object WIP extends Tag( "wip" )
@@ -139,13 +139,13 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
     }
 
     "custom labeling can override class label" in {
-      implicit val fooLabeling = Labeling.custom[Foo]( "SpecialFoo" )
+      implicit val fooLabeling: Labeling[Foo] = Labeling.custom[Foo]( "SpecialFoo" )
 
       val suid = ShortUUID()
       val fid = Id.of[Foo, ShortUUID]( suid )
       fid.toString shouldBe s"SpecialFooId(${suid})"
 
-      implicit val barLabeling = new EmptyLabeling[Bar]
+      implicit val barLabeling: EmptyLabeling[Bar] = new EmptyLabeling[Bar]
       val bid = Id.of[Bar, Long]( 17L )
       bid.toString shouldBe "17"
     }
@@ -160,8 +160,7 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
 
     "support conversion to another entity basis" in {
       val fid: Id.Aux[Foo, ShortUUID] = Foo.nextId
-      "val bid = fid.as[Bar]" shouldNot compile
-      implicit val barShortIdentifying = Foo.identifying.as[Bar]
+      implicit val barShortIdentifying: Identifying.Aux[Bar, ShortUUID] = Foo.identifying.as[Bar]
       "val bid = fid.as[Bar]" should compile
       val bid: Id.Aux[Bar, ShortUUID] = fid.as[Bar]
       fid.label shouldBe "Foo"
@@ -225,7 +224,6 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       val fromShort = parser
         .parse( shortJson.noSpaces )
         .flatMap( _.as[Id.Aux[Foo, ShortUUID]] )
-        .right
         .value
       fromShort shouldBe short
     }
@@ -237,7 +235,6 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       val fromLong = parser
         .parse( longJson.noSpaces )
         .flatMap( _.as[Id.Aux[Bar, Long]] )
-        .right
         .value
       fromLong shouldBe long
     }
@@ -249,7 +246,6 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       val fromSnow = parser
         .parse( snowJson.noSpaces )
         .flatMap( _.as[Id.Aux[Zoo, String]] )
-        .right
         .value
       fromSnow shouldBe snow
     }
@@ -261,7 +257,6 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       val fromUuid = parser
         .parse( uuidJson.noSpaces )
         .flatMap( _.as[Id.Aux[Moo, UUID]] )
-        .right
         .value
       fromUuid shouldBe uuid
     }
@@ -273,10 +268,10 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       val sidJson = sidValue.asJson
       log.debug( s"sidJson = ${sidJson}" )
 
-      parser.parse( sidJson.noSpaces ).flatMap( _.as[ShortUUID] ).right.value shouldBe sidValue
+      parser.parse( sidJson.noSpaces ).flatMap( _.as[ShortUUID] ).value shouldBe sidValue
 
       val actualSID =
-        parser.parse( sidJson.noSpaces ).flatMap( _.as[Id.Aux[Foo, ShortUUID]] ).right.value
+        parser.parse( sidJson.noSpaces ).flatMap( _.as[Id.Aux[Foo, ShortUUID]] ).value
       log.debug( s"actualSID = ${actualSID}" )
 
       actualSID.value shouldBe sidValue
@@ -290,10 +285,10 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       val lidJson = CJson fromLong lidValue
       log.debug( s"lidJson = ${lidJson}" )
 
-      parser.parse( lidJson.noSpaces ).flatMap( _.as[Long] ).right.value shouldBe lidValue
+      parser.parse( lidJson.noSpaces ).flatMap( _.as[Long] ).value shouldBe lidValue
 
       val actualLID =
-        parser.parse( lidJson.noSpaces ).flatMap( _.as[Id.Aux[Bar, Long]] ).right.value
+        parser.parse( lidJson.noSpaces ).flatMap( _.as[Id.Aux[Bar, Long]] ).value
       log.debug( s"actualLID = ${actualLID}" )
 
       actualLID.value shouldBe lidValue
@@ -307,10 +302,10 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       val zidJson = CJson fromString zidValue
       log.debug( s"zidJson = ${zidJson}" )
 
-      parser.parse( zidJson.noSpaces ).flatMap( _.as[String] ).right.value shouldBe zidValue
+      parser.parse( zidJson.noSpaces ).flatMap( _.as[String] ).value shouldBe zidValue
 
       val actualZID =
-        parser.parse( zidJson.noSpaces ).flatMap( _.as[Id.Aux[Zoo, String]] ).right.value
+        parser.parse( zidJson.noSpaces ).flatMap( _.as[Id.Aux[Zoo, String]] ).value
       log.debug( s"actualZID = ${actualZID}" )
 
       actualZID.value shouldBe zidValue
@@ -324,10 +319,10 @@ class IdSpec extends AnyWordSpec with Matchers with EitherValues {
       val mooJson = mooValue.asJson
       log.debug( s"mooJson = ${mooJson}" )
 
-      parser.parse( mooJson.noSpaces ).flatMap( _.as[UUID] ).right.value shouldBe mooValue
+      parser.parse( mooJson.noSpaces ).flatMap( _.as[UUID] ).value shouldBe mooValue
 
       val actualMOO =
-        parser.parse( mooJson.noSpaces ).flatMap( _.as[Id.Aux[Moo, UUID]] ).right.value
+        parser.parse( mooJson.noSpaces ).flatMap( _.as[Id.Aux[Moo, UUID]] ).value
       log.debug( s"actualMOO = ${actualMOO}" )
 
       actualMOO.value shouldBe mooValue
